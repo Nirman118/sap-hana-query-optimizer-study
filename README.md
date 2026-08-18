@@ -37,37 +37,16 @@ erDiagram
     CUSTOMERS   ||--o{ SALESORDERS : places
     SALESORDERS ||--o{ ORDERITEMS  : contains
     PRODUCTS    ||--o{ ORDERITEMS  : "appears on"
-
-    CUSTOMERS {
-        int      CustomerID PK
-        nvarchar CustomerName
-        nvarchar Region
-        decimal  CreditLimit
-    }
-    PRODUCTS {
-        int      ProductID PK
-        nvarchar ProductName
-        nvarchar Category
-        decimal  UnitPrice
-        int      StockQty
-    }
-    SALESORDERS {
-        int      OrderID PK
-        int      CustomerID FK
-        date     OrderDate
-        nvarchar Status
-        decimal  TotalValue
-    }
-    ORDERITEMS {
-        int     OrderItems PK
-        int     OrderID FK
-        int     ProductID FK
-        int     Quantity
-        decimal LineTotal
-    }
 ```
 
-Row counts: Customers 5 · Products 5 · SalesOrders 6 · OrderItems 7.
+| Table | Rows | Key columns | Role |
+|---|---|---|---|
+| `CUSTOMERS` | 5 | `CustomerID` **PK** · Region, CreditLimit | dimension |
+| `PRODUCTS` | 5 | `ProductID` **PK** · Category, UnitPrice, StockQty | dimension |
+| `SALESORDERS` | 6 | `OrderID` **PK** · `CustomerID` **FK** · OrderDate, Status, TotalValue | fact header |
+| `ORDERITEMS` | 7 | `OrderItems` **PK** · `OrderID` **FK**, `ProductID` **FK** · Quantity, LineTotal | fact line |
+
+Full column definitions are in [`sql/01_schema_and_seed.sql`](sql/01_schema_and_seed.sql).
 
 The **declared foreign keys are load-bearing for this study**. Every
 `MANY-TO-ONE INDEX JOIN` in `plans/` is a direct consequence of them: the
