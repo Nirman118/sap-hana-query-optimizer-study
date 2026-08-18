@@ -1,0 +1,194 @@
+-- CUSTOMERS: the BUYER
+CREATE COLUMN TABLE Customers (
+	CustomerID   INTEGER Primary key,
+	CustomerName NVARCHAR(100) not null,
+	Region		 nvarchar(50),
+	CreditLimit  Decimal(15,2),
+	CreatedAt    Timestamp Default CURRENT_TIMESTAMP
+);
+
+-- PRODUCTS : What is being SOLD
+Create Column TABLE Products (
+	ProductID    Integer Primary Key,
+	ProductName  nvarchar(100) Not null,
+	Category     nvarchar(50),
+	UnitPrice	 Decimal(10,2) not null,
+	StockQty	 Integer default 0
+);
+
+-- SALESORDERS : the order header (one row per order)
+Create column Table SalesOrders(
+	OrderID		integer Primary key,
+	CustomerID	integer not null,
+	OrderDate	Date not null,
+	Status		nvarchar(20) default 'OPEN',
+	TotalValue	decimal(15,2),
+	CONSTRAINT  fk_order_customer FOREIGN KEY (CustomerID) References Customers(CustomerID)
+);
+
+--ORDERITEMS: the order line items (many rows per order)
+CREATE COLUMN TABLE OrderItems(
+	OrderItems  INT PRIMARY KEY,
+	OrderID		INTEGER NOT NULL,
+	ProductID	INTEGEr NOT NULL,
+	Quantity	INTEGER NOT NULL,
+	LineTotal	decimal(15,2),
+	CONSTRAINT  fk_item_order FOREIGN KEY (OrderID) References SalesOrders(OrderID),
+	CONSTRAINT  fk_item_product FOREIGN KEY (ProductID) References Products(ProductID)
+);
+
+--verify tables exist
+SELECT TABLE_NAME, TABLE_TYPE FROM SYS.TABLES WHERE SCHEMA_NAME = CURRENT_SCHEMA AND TABLE_NAME IN ('CUSTOMERS','PRODUCTS','SALESORDERS','ORDERITEMS');
+
+-- Seed Customers (5 rows)
+INSERT INTO Customers VALUES (1, 'Nordic Retail GmbH', 'Europe', 50000.00, CURRENT_TIMESTAMP);
+INSERT INTO Customers VALUES (2, 'Alpine Trading Co', 'Europe', 30000.00, CURRENT_TIMESTAMP);
+INSERT INTO Customers VALUES (3, 'Pacific Distributors', 'APAC', 75000.00, CURRENT_TIMESTAMP);
+INSERT INTO Customers VALUES (4, 'Rhine Logistics AG', 'Europe', 45000.00, CURRENT_TIMESTAMP);
+INSERT INTO Customers VALUES (5, 'Atlas Wholesale Inc', 'North America', 60000.00, CURRENT_TIMESTAMP);
+
+-- Seed Products (5 rows)
+INSERT INTO Products VALUES (101, 'Industrial Sensor A1', 'Electronics', 149.99, 500);
+INSERT INTO Products VALUES (102, 'Hydraulic Pump B2', 'Machinery', 899.50, 120);
+INSERT INTO Products VALUES (103, 'Steel Bracket C3', 'Hardware', 12.75, 5000);
+INSERT INTO Products VALUES (104, 'Control Valve D4', 'Machinery', 320.00, 300);
+INSERT INTO Products VALUES (105, 'Safety Relay E5', 'Electronics', 65.25, 800);
+
+-- Seed SalesOrders (6 rows)
+INSERT INTO SalesOrders VALUES (1001, 1, '2026-06-01', 'CLOSED', 1799.48);
+INSERT INTO SalesOrders VALUES (1002, 2, '2026-06-03', 'CLOSED', 899.50);
+INSERT INTO SalesOrders VALUES (1003, 3, '2026-06-05', 'OPEN', 63.75);
+INSERT INTO SalesOrders VALUES (1004, 1, '2026-06-10', 'OPEN', 320.00);
+INSERT INTO SalesOrders VALUES (1005, 4, '2026-06-12', 'CLOSED', 2015.75);
+INSERT INTO SalesOrders VALUES (1006, 5, '2026-06-15', 'OPEN', 130.50);
+
+-- Seed OrderItems (matching the orders above)
+INSERT INTO OrderItems VALUES (1, 1001, 101, 12, 1799.88);
+INSERT INTO OrderItems VALUES (2, 1002, 102, 1, 899.50);
+INSERT INTO OrderItems VALUES (3, 1003, 103, 5, 63.75);
+INSERT INTO OrderItems VALUES (4, 1004, 104, 1, 320.00);
+INSERT INTO OrderItems VALUES (5, 1005, 101, 10, 1499.90);
+INSERT INTO OrderItems VALUES (6, 1005, 105, 8, 522.00);
+INSERT INTO OrderItems VALUES (7, 1006, 105, 2, 130.50);
+
+--verify data updates
+SELECT 'Customers' as TableName, COUNT(*) as RowCount FROM Customers
+UNION ALL
+SELECT 'Products', COUNT(*) FROM Products
+UNION ALL
+SELECT 'SalesOrders', COUNT(*) FROM SalesOrders
+UNION ALL
+SELECT 'OrderItems', COUNT(*) FROM OrderItems;  
+
+--test
+SELECT c.CustomerName, so.OrderID, p.ProductName, oi.Quantity, oi.LineTotal
+FROM SalesOrders so
+JOIN Customers c ON so.CustomerID=c.CustomerID
+JOIN OrderItems oi ON so.OrderID=oi.OrderID
+JOIN Products p ON oi.ProductID=p.ProductID
+ORDER BY so.OrderID;
+
+--Coming UP: 5 Queries with Increasing Complexity, one at a time
+--Q1:Business Question
+--What is our total Inventory Value across all products?
+SELECT
+	Category,
+	COUNT(*) as ProductCount,
+	SUM(UnitPrice*StockQty) as TotalInventoryValue
+FROM Products
+GROUP BY Category
+ORDER BY TotalInventoryValue DESC;
+
+--Q2: Which products are running low on stock and need Reordering?
+SELECT
+	ProductID,
+	ProductName,
+	Category,
+	StockQty,
+	UnitPrice
+FROM Products
+WHERE StockQty < 300
+ORDER BY StockQty ASC;
+
+--Q3: Which customers have placed orders, and what's each order's date and status
+SELECT
+	c.CustomerName,
+	c.Region,
+	so.OrderID,
+	so.OrderDate,
+	so.Status,
+	so.TotalValue
+From SalesOrders so
+JOIN Customers c ON so.CustomerID = c.CustomerID
+ORDER BY so.OrderDate;
+
+--Q4: For each order, what products were purchased, and what's the total quantity?
+SELECT
+	so.OrderID,
+	c.CustomerName,
+	p.ProductName,
+	oi.Quantity,
+	oi.LineTotal
+FROM SalesOrders so
+JOIN Customers c ON so.CustomerID = c.CustomerID
+JOIN OrderItems oi ON so.OrderID = oi.OrderID
+JOIN Products p ON oi.ProductID = p.ProductID
+ORDER BY so.OrderID;
+
+--Q5: What's the total revenue per product category, and how many units of each were sold?
+SELECT 
+	p.Category,
+	COUNT(DISTINCT oi.OrderID) as ItemsSold,
+	SUM(oi.Quantity) as TotalUnits,
+	SUM(oi.LineTotal) as TotalRevenue
+FROM OrderItems oi
+JOIN Products p ON oi.ProductID = p.ProductID
+Group BY p.Category
+ORDER BY TotalRevenue DESC;
+
+--Repeated Subquery>Automatic Reuse: Even if we dont write a CTE ,HANA's OPTIMIZER detects 
+--when we have written the same subquery twice and does it compute it only once?.
+--CHECK THese lines> RESULTS suggest something different>> DEDUPLICATION did not HAPPEN here
+SELECT 
+	c.CustomerName,
+	(SELECT SUM(oi.LineTotal) FROM OrderItems oi JOIN SalesOrders so ON oi.OrderID=so.OrderID Where so.CustomerID=c.CustomerID) as TotalSpent,
+	Case WHEN (SELECT SUM(oi.LineTotal) FROM OrderItems oi JOIN SalesOrders so ON oi.OrderID=so.OrderID Where so.CustomerID=c.CustomerID)>1000
+		 THEN 'High Value' ELSE 'Standard' END as CutomerTier
+FROM Customers c;		 
+
+--Q7: EXISTS > SEMI -join:EXISTS looks like it should run once per row(SLOW), 
+--BUT HANA rewrites it into a single efficient semi-join
+SELECT c.CustomerName, c.Region
+FROM Customers c
+WHERE EXISTS (
+	SELECT 1 from SalesOrders so WHERE so.CustomerID = c.CustomerID
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
