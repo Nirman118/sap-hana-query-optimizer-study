@@ -64,10 +64,16 @@ EXPLAIN PLAN SET STATEMENT_NAME = 'Qn' FOR <query>;
 SELECT * FROM SYS.EXPLAIN_PLAN_TABLE WHERE STATEMENT_NAME = 'Qn';
 ```
 
-The result was exported unmodified to `plans/Qn_*.csv`. The columns that carry
+The result was exported to `plans/Qn_*.csv`. The columns that carry
 the analysis are `OPERATOR_NAME`, `OPERATOR_DETAILS`, `OPERATOR_PROPERTIES`,
 `TABLE_SIZE`, `OUTPUT_SIZE` and `SUBTREE_COST`; `LEVEL` and
 `PARENT_OPERATOR_ID` reconstruct the tree.
+
+**One deliberate edit to the exports.** Three columns identifying the database
+instance — `HOST`, `PORT` and `CONNECTION_ID` — were dropped before publishing.
+Nothing else was altered: every operator, cost, cardinality and property below
+is exactly as HANA emitted it, and `TIMESTAMP` is retained so each plan still
+records when it was captured.
 
 **On the cost numbers.** `SUBTREE_COST` is the optimizer's unitless *estimate*,
 not a measured runtime. On a 23-row dataset the absolute values are
