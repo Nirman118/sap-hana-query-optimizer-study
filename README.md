@@ -1,33 +1,67 @@
 # SAP HANA Query Optimizer — An Evidence-Based Study
 
-An empirical study of how the SAP HANA Cloud query optimizer behaves as data
-volume grows, and how the database protects itself when transactional and
-analytical work compete for the same resources. This repository is the
-evidence trail behind the submitted report; every figure quoted in the report
-is backed by a file committed here.
+What does SAP HANA's query optimizer actually do as a table grows from a
+handful of rows to a million? This repository is an attempt to find out by
+measuring rather than assuming — the same eight queries, run at four scales,
+with every execution plan captured and kept as evidence.
 
-**Environment** — SAP HANA Cloud (`HSF_DB`), schema `NSHARMA`, accessed via
-SAP HANA Database Explorer, HEX execution engine, all tables COLUMN store.
+**Environment** — SAP HANA Cloud, SAP HANA Database Explorer, HEX execution
+engine, all tables column-store.
 
 ---
 
-## What this study covers
+## What was actually tested
 
-Eight queries (Q1–Q8) run at four scale tiers — baseline (7 rows), 10K, 100K,
-and 1M — over a four-table order-to-cash schema (`Customers`, `Products`,
-`SalesOrders`, `OrderItems`). Alongside the plan captures, the study also
-covers:
+A small retail schema — customers, products, orders, order lines — was built
+and populated at four sizes: a 7-row baseline, then 10,000, 100,000, and
+1,000,000 rows in the largest table. The same eight queries ran at every
+tier, and their execution plans were captured and compared.
 
-- **Overriding the optimizer** — forcing a nested loop join with
-  `HEX_NESTED_LOOP_JOIN` and measuring the cost penalty as data grows
-- **Concurrency** — MVCC read behaviour during an open write transaction, and
-  an analytical query running alongside a two-million-row concurrent insert
-- **Workload governance** — creating a workload class, mapping it to a
-  session, and verifying it actually throttles a query via
-  `M_WORKLOAD_CLASS_STATISTICS`
+Three other things were tested alongside the scaling itself:
 
-Full findings, discussion and limitations are in the submitted report. This
-README indexes the supporting evidence; it does not restate the analysis.
+- **What it costs to override the optimizer.** A join was forced into a
+  nested loop using a hint, at each scale, and compared against the plan the
+  optimizer chose on its own.
+- **What happens when reads and writes overlap.** Whether a read gets blocked
+  by an open write, and whether an analytical query stays fast while a large
+  concurrent insert is running.
+- **Whether workload governance actually works.** Whether a workload class,
+  once configured, genuinely limits a query's resource use — checked against
+  the database's own admission statistics, not just against a timer.
+
+---
+
+## Findings, in brief
+
+**The same join gets a different algorithm depending on where it sits in the
+query.** An identical join condition, on identical tables, at identical row
+counts, was given an index join when it stood alone and a hash join when it
+was part of a longer chain. This held at every scale tested. Table size alone
+does not decide the plan — the surrounding query does.
+
+**Overriding the optimizer gets more expensive as data grows, and not
+proportionally.** Forcing a nested loop join cost roughly 46 times more than
+the optimizer's own plan at ten thousand rows, and roughly 3,352 times more
+at one million. The penalty for a wrong plan widens faster than the data
+does.
+
+**Reads are not blocked by writes.** A session reading a row was never made
+to wait for a concurrent, uncommitted write to the same row, and never saw
+the uncommitted value either. Both guarantees held at once.
+
+**A full aggregation stayed fast during a large concurrent write.** An
+aggregation over a million-row table finished in milliseconds while two
+million rows were being inserted into the same table at the same time.
+
+**Workload classes only govern once mapped to something the session actually
+presents.** A class that looked fully configured was found, on inspection of
+the database's own admission counters, to be governing nothing — the mapping
+had been made on a session attribute the connection never set. Once
+corrected, the same class measurably slowed a governed query relative to an
+ungoverned one.
+
+Full detail, discussion, and the limitations of each finding are worked
+through in the accompanying report.
 
 ---
 
@@ -35,30 +69,40 @@ README indexes the supporting evidence; it does not restate the analysis.
 
 | Path | Contents |
 |---|---|
-| `sql/` | Schema DDL, data generation scripts, the eight queries, hint syntax, workload class setup |
-| `plans/10K/` | Query plans at the 10,000-row tier |
-| `plans/100K/` | Query plans at the 100,000-row tier |
-| `plans/1M/` | Query plans at the 1,000,000-row tier |
-| `plans/Baseline_query_plans/` | Query plans at the 7-row baseline tier |
-| `plans/Plans_Reference/` | `SYS.HINTS` catalog output — the reference behind the hint-naming findings |
-| `screenshots/` | Console captures for the MVCC and concurrency tests, and workload class verification |
-| `scaling-phase/` | Working files from the tier-by-tier scale-up |
-| `archive/` | Superseded drafts and exploratory work, kept for reference |
+| `sql/` | Schema, data generation, the eight queries, hint syntax, workload class setup |
+| `plans/10K/`, `plans/100K/`, `plans/1M/` | Captured execution plans at each scale tier |
+| `plans/Baseline_query_plans/` | Plans at the smallest (7-row) tier |
+| `plans/Plans_Reference/` | Catalog query output used to confirm correct hint names |
+| `screenshots/` | Console captures for the concurrency and workload governance tests |
+| `scaling-phase/` | Working files from building up each tier |
+| `archive/` | Earlier drafts and exploratory work, kept for reference rather than deleted |
 
-Each plan file is named by query and purpose, e.g. `Q4_multi_join.csv` (the
-optimizer's own plan) and `Q4_nestedloop_hint.csv` (the same query with the
-nested loop hint forced). `Q8_selfjoin.csv` is present at every tier.
+Plan files are named by query and purpose — for example `Q4_multi_join.csv`
+for the optimizer's own plan, and `Q4_nestedloop_hint.csv` for the same query
+with the nested loop forced.
+
+---
+
+## A note on the process
+
+Two things went wrong during this project and are recorded rather than
+quietly fixed: a batch of plans was captured before a data reload had
+actually finished, producing results that looked plausible but described the
+wrong tier; and a workload mapping looked correctly configured while
+governing nothing at all, caught only by checking the database's own
+admission statistics rather than trusting the timing alone. Both are kept in
+the evidence trail, because working out what had gone wrong turned out to be
+as informative as the results themselves.
 
 ---
 
 ## Sanitization
 
-Every plan export originally contained the HANA instance ID, schema name and
-connection ID. All files in `plans/` have been run through
-[`sanitize_plan_csv.py`](sanitize_plan_csv.py), which redacts these three
-fields before the file is committed. Operator names, costs, cardinalities and
-timestamps are untouched — only connection metadata is removed. Run the
-script yourself against any new export before adding it:
+Plan exports originally contained the database instance ID, schema name, and
+connection ID. Every file in `plans/` has been processed with
+[`sanitize_plan_csv.py`](sanitize_plan_csv.py), which removes these three
+fields and leaves everything else — operators, costs, row counts,
+timestamps — unchanged.
 
 ```bash
 python sanitize_plan_csv.py <file1.csv> [file2.csv ...]
@@ -66,41 +110,24 @@ python sanitize_plan_csv.py <file1.csv> [file2.csv ...]
 
 ---
 
-## Key figures (as reported)
-
-For quick cross-reference against the submitted report:
-
-| Finding | Figure | Evidence |
-|---|---|---|
-| Same join, different algorithm depending on context | Q3 stays INDEX JOIN at every tier; Q4's equivalent join switches to HASH JOIN from 10K onward | `plans/10K/Q3_single_join.csv`, `plans/10K/Q4_multi_join.csv` (and 100K/1M equivalents) |
-| Cost of forcing a nested loop join | 46× at 10K, 386× at 100K, 3,352× at 1M | `plans/*/Q4_nestedloop_hint.csv` vs `plans/*/Q4_multi_join.csv` |
-| Non-blocking reads under MVCC | Session B reads the prior committed value while session A's write is open | `screenshots/` MVCC captures |
-| Mixed transactional/analytical load | 28 ms aggregation while a 2M-row insert runs concurrently | `screenshots/` HTAP capture |
-| Workload class governance | Governed query slows by ~5.7× once correctly mapped, confirmed via admit count | `screenshots/` workload governance capture |
-| Correct hint syntax | `HEX_NESTED_LOOP_JOIN`, not the Oracle-style names first assumed | `plans/Plans_Reference/HANA_SYS_HINTS.csv` |
-
----
-
 ## Reproducing this
 
 1. Provision a HANA Cloud instance and open Database Explorer.
-2. Run the schema and generation scripts in `sql/` for the tier you want to
-   reproduce.
-3. Capture a plan with `EXPLAIN PLAN SET STATEMENT_NAME = 'Qn' FOR <query>;`
-   then read `SYS.EXPLAIN_PLAN_TABLE`.
-4. Compare against the corresponding file in `plans/`. Operator *shapes*
-   should match; absolute costs will vary with instance sizing.
+2. Run the schema and generation scripts in `sql/` for whichever tier you
+   want to reproduce.
+3. Capture a plan with `EXPLAIN PLAN SET STATEMENT_NAME = 'Qn' FOR <query>;`,
+   then read it back from `SYS.EXPLAIN_PLAN_TABLE`.
+4. Compare the result against the matching file in `plans/`. Operator
+   *shapes* should match; absolute costs will vary with instance sizing.
 
 ---
 
-## Scope and honesty statement
+## Scope
 
-- All costs in the plans are the optimizer's own estimates, not measured
-  wall-clock time, except where the report explicitly states a timed result
-  (the concurrency and workload governance figures were measured directly).
-- Two configuration mistakes were made and corrected during this study — a
-  set of plans captured before a data reload had finished, and a workload
-  mapping that looked active but governed nothing. Both are documented in the
-  report rather than silently fixed, since the diagnosis was itself a result.
-- This repository supports the submitted report and is provided as a
-  cross-reference; the report is the primary document.
+- Plan costs are the optimizer's own estimates, not measured wall-clock time,
+  except where a result was explicitly timed (the concurrency and workload
+  governance tests were both measured directly).
+- The dataset is synthetic and generated with even distributions, so nothing
+  here speaks to how the optimizer behaves under real-world data skew.
+- Everything ran on a single-node instance; the findings do not extend to a
+  distributed deployment without further testing.
