@@ -1,0 +1,156 @@
+HINT_NAME,DESCRIPTION
+AGGR_THRU_JOIN,Prefer pushdown aggregation through join
+CHECK_JOIN_CARDINALITY,Perform join cardinality information validation during query execution. This hint can alter plan shape as in order to make the join cardinality testable.
+The validation may not find all join cardinality information fault but can be used as assistant tool. The primary responsibility for checking and setting correct join cardinality information is on the users.
+CONSERVATIVE_CS_ANTI_JOIN_ESTIMATION,Use Conservative cs anti join estimation
+CS_EXPR_JOIN,Prefer column engine expression join
+CS_JOIN,Prefer column engine join
+CS_JOIN_CYCLE_BREAK,Specify join edges at which a cyclic join should be broken up
+CS_JOIN_FILTER_AFTER_REDUCTION,Apply filter on table after join reduction
+CS_JOIN_FILTER_BEFORE_REDUCTION,Apply filter on table before join reduction
+CS_JOIN_MATERIALIZATION_BIGGEST_TABLE_FIRST,Begin join materialization at largest table
+CS_JOIN_MATERIALIZATION_CONCURRENCY,Set concurrency of join result materialization
+CS_JOIN_MATERIALIZATION_SMALLEST_TABLE_FIRST,Begin join materialization at smallest table
+CS_JOIN_POST_CHECK_SIZE_THRESHOLD,Set threshold for post-condition and distinct checks on intermedia results
+CS_JOIN_REDUCTION,Specify table(s) at which join reduction should begin
+CS_JOIN_REDUCTION_MULTICOLUMN_FIRST,Specify column which is evaluated first in join reduction
+CS_JOIN_RESULT_MATERIALIZATION,Specify table at which join materialization should begin
+CS_JOIN_SHRINK_SIZE_THRESHOLD,Set threshold for intermediate result shrinking
+CS_OUTER_JOIN_WITH_FILTER,Prefer outer join with filter pushdown to column engine
+CS_SEMI_JOIN,Prefer column engine semi join
+CYCLIC_JOIN,Prefer cyclic join in single column search
+DISJUNCTIVE_HASH_JOIN,Prefer row engine disjunctive hash join
+DISJ_JOIN_INTO_UNION,Prefer split disjunctive join predicate into filters and make union all
+DISTINCT_INTO_SEMI_JOIN,Prefer merge distinct with join
+DOUBLE_JOIN_THRU_UNION_ALL,Prefer pushdown join through double union all
+DOUBLE_PREAGGR_BEFORE_JOIN,Prefer pre-aggregation before join for the both children
+ESX_INDEX_JOIN,Prefer to use ESX engine index join
+ESX_JOIN,Prefer to use ESX engine join
+ESX_PARTITION_HASH_JOIN_BUCKETS,Control number of buckets for partition hash join
+EXHAUSTIVE_JOIN_ESTIMATION,Enable exhaustive join size estimation during plan enumeration. Please be aware that this can increase compilation time
+FILTER_THRU_JOIN,Prefer pushdown filter through join
+HASHED_RANGE_JOIN,Prefer row engine hashed range join
+HASH_JOIN,Prefer row engine hash join
+HEURISTIC_LIMIT_THRU_JOIN,Prefer heuristic pushdown limit through join
+HEURISTIC_PRELIMIT_BEFORE_JOIN,Prefer heuristic pushdown prelimit before join
+HEX_COLLECTION_SEARCH_SEMI_JOIN,Prefer semi join reduction on collection search
+HEX_DISK_HASH_JOIN,Prefer HEX disk hash join if HEX hash join is chosen initially and the number of input records in its build side is estimated to be large enough (e.g. 10000)
+HEX_DISK_NESTED_LOOP_JOIN,Prefer HEX disk nested loop join if HEX nested loop join is chosen initially and the number of input records in the smaller table is estimated to be large enough (e.g. 10000)
+HEX_FILE_SEMI_JOIN,Prefer semi join pushdown to file data source
+HEX_FILE_SEMI_JOIN_REDUCTION,Prefer semi join reduction pushdown to file data source
+HEX_HASHED_RANGE_JOIN,Prefer HEX hashed range join
+HEX_HASH_JOIN,Prefer HEX hash join
+HEX_HASH_JOIN_WITH_REPARTITION,Prefer HEX hash join with repartition operator
+HEX_INDEX_JOIN,Prefer HEX index join
+HEX_INDEX_JOIN_WITH_REPARTITION,Prefer HEX index join with repartition operator
+HEX_LIMIT_THRU_OUTER_JOIN,Prefer HEX limit thru outer join
+HEX_MULTI_TABLE_SCAN_SEMI_JOIN,Prefer HEX table scan semi join
+HEX_NESTED_LOOP_JOIN,Prefer HEX nested loop join
+HEX_RANGE_JOIN,Prefer HEX range join
+HEX_RS_INDEX_JOIN,Prefer HEX RS index join
+HEX_TABLE_SCAN_SEMI_JOIN,Prefer HEX table scan semi join
+HOST_PORT_JOIN_COLOCATION,Prefer host/port join thru union
+INDEX_JOIN,Prefer row engine index join
+JOIN_FILTER_REORDERING,Prefer join predicate reordering
+JOIN_REMOVAL,Prefer unnecessary join removal
+JOIN_REMOVAL_USING_CARDINALITY,Prefer join removal based on cardinality
+JOIN_RULE,Prefer all available join rule or given rule passed as an argument
+JOIN_SAMPLING,Prefer join selectivity sampling
+JOIN_SIMPLIFICATION,Prefer join simplification
+JOIN_SKEW_ESTIMATION,Prefer join skewness estimation
+JOIN_THRU_AGGR,Prefer pushdown join through aggregation
+JOIN_THRU_FILTER,Prefer pushdown join through filter
+JOIN_THRU_JOIN,Prefer pushdown join through join
+JOIN_THRU_UNION,Prefer pushdown join through union all
+LIMIT_THRU_JOIN,Prefer pushdown limit through join
+MULTI_SEMI_JOIN_REDUCTION,Prefer semi join reduction on semi join
+NO_AGGR_THRU_JOIN,Avoid pushdown aggregation through join
+NO_CONSERVATIVE_CS_ANTI_JOIN_ESTIMATION,Avoid Conservative cs anti join estimation
+NO_CS_EXPR_JOIN,Avoid column engine expression join
+NO_CS_JOIN,Avoid column engine join
+NO_CS_OUTER_JOIN_WITH_FILTER,Avoid outer join with filter pushdown to column engine
+NO_CS_SEMI_JOIN,Avoid column engine semi join
+NO_CYCLIC_JOIN,Avoid cyclic join in single column search
+NO_DISJUNCTIVE_HASH_JOIN,Avoid row engine disjunctive hash join
+NO_DISJ_JOIN_INTO_UNION,Avoid split disjunctive join predicate into filters and make union all
+NO_DISTINCT_INTO_SEMI_JOIN,Avoid merge distinct with join
+NO_DOUBLE_JOIN_THRU_UNION_ALL,Avoid pushdown join through double union all
+NO_DOUBLE_PREAGGR_BEFORE_JOIN,Avoid pre-aggregation before join for the both children
+NO_ESX_INDEX_JOIN,Avoid to use ESX engine index join
+NO_ESX_JOIN,Avoid to use ESX engine join
+NO_EXHAUSTIVE_JOIN_ESTIMATION,Disable exhaustive join size estimation during plan enumeration
+NO_FILTER_THRU_JOIN,Avoid pushdown filter through join
+NO_HASHED_RANGE_JOIN,Avoid row engine hashed range join
+NO_HASH_JOIN,Avoid row engine hash join
+NO_HEURISTIC_LIMIT_THRU_JOIN,Avoid heuristic pushdown limit through join
+NO_HEURISTIC_PRELIMIT_BEFORE_JOIN,Avoid heuristic pushdown prelimit before join
+NO_HEX_COLLECTION_SEARCH_SEMI_JOIN,Avoid semi join reduction on collection search
+NO_HEX_DISK_HASH_JOIN,Aviod HEX disk hash join
+NO_HEX_DISK_NESTED_LOOP_JOIN,Aviod HEX disk nested loop join
+NO_HEX_FILE_SEMI_JOIN,Avoid semi join pushdown to file data source
+NO_HEX_FILE_SEMI_JOIN_REDUCTION,Avoid semi join reduction pushdown to file data source
+NO_HEX_HASHED_RANGE_JOIN,Avoid HEX hashed range join
+NO_HEX_HASH_JOIN,Avoid HEX hash join
+NO_HEX_HASH_JOIN_WITH_REPARTITION,Avoid HEX hash join with repartition operator
+NO_HEX_INDEX_JOIN,Avoid HEX index join
+NO_HEX_INDEX_JOIN_WITH_REPARTITION,Avoid HEX index join with repartition operator
+NO_HEX_LIMIT_THRU_OUTER_JOIN,Avoid HEX limit thru outer join
+NO_HEX_MULTI_TABLE_SCAN_SEMI_JOIN,Avoid HEX table scan semi join
+NO_HEX_NESTED_LOOP_JOIN,Avoid HEX nested loop join
+NO_HEX_RANGE_JOIN,Avoid HEX range join
+NO_HEX_RS_INDEX_JOIN,Avoid HEX RS index join
+NO_HEX_TABLE_SCAN_SEMI_JOIN,Avoid HEX table scan semi join
+NO_HOST_PORT_JOIN_COLOCATION,Avoid host/port join thru union
+NO_INDEX_JOIN,Avoid row engine index join
+NO_JOIN_CARDINALITY,Discard join cardinality information. Possible arguments: EXPLICIT/IMPLICIT/ALL.
+ *EXPLICIT: discard join cardinality specified in the model or SQL.
+ *IMPLICIT: discard join cardinality calculated by SQL optimizer.
+ *ALL : discard all explicit/implicit join cardinality
+NO_JOIN_FILTER_REORDERING,Avoid join predicate reordering
+NO_JOIN_REMOVAL,Avoid unnecessary join removal
+NO_JOIN_REMOVAL_USING_CARDINALITY,Avoid join removal based on cardinality
+NO_JOIN_RULE,Avoid all available join rule or given rule passed as an argument
+NO_JOIN_SAMPLING,Avoid join selectivity sampling
+NO_JOIN_SIMPLIFICATION,Avoid join simplification
+NO_JOIN_SKEW_ESTIMATION,Avoid join skewness estimation
+NO_JOIN_THRU_AGGR,Avoid pushdown join through aggregation
+NO_JOIN_THRU_FILTER,Avoid pushdown join through filter
+NO_JOIN_THRU_JOIN,Avoid pushdown join through join
+NO_JOIN_THRU_UNION,Avoid pushdown join through union all
+NO_LIMIT_THRU_JOIN,Avoid pushdown limit through join
+NO_MULTI_SEMI_JOIN_REDUCTION,Avoid semi join reduction on semi join
+NO_OUTER_JOIN_THRU_CONVERT_CURRENCY,Avoid outer-join thru currency conversion
+NO_OUTER_JOIN_THRU_CONVERT_UNIT,Avoid outer-join thru unit conversion
+NO_PREAGGR_BEFORE_JOIN,Avoid pre-aggregation before join
+NO_PREDISTINCT_BEFORE_SEMI_JOIN,Avoid put DISTINCT on the right child of SEMI or ANTI SEMI join
+NO_PRELIMIT_BEFORE_JOIN,Avoid prelimit on the left child of join
+NO_RANGE_JOIN,Avoid row engine range join
+NO_REMOTE_JOIN,Avoid join pushdown to remote data source
+NO_REMOTE_JOIN_RELOCATION,Avoid join relocation. Perform JOIN between HANA and remote table at remote DB
+NO_REMOTE_SEMI_JOIN,Avoid semi join pushdown to remote data source
+NO_REPLACE_WITH_JOIN,Avoid JOIN plan for batch REPLACE VALUES WITH PRIMARY KEY statement
+NO_RUNTIME_JOIN_INPUT_DECISION,Disable Rutime Join Input Decision
+NO_SELF_JOIN_REMOVAL,Avoid self join removal
+NO_SELF_JOIN_REMOVAL_WITH_SQL_PARAMETERS,Do not Optimize Self Key Join with sql parameters
+NO_SEMI_JOIN_BEFORE_UNION,Avoid pushdown semi join through union all
+NO_SEMI_JOIN_REDUCTION,Avoid semi join reduction
+NO_SEMI_JOIN_REDUCTION_BEFORE_UNION_ALL,Avoid semi join reduction before union all
+NO_SEMI_JOIN_REDUCTION_REDUCER,Avoid semi join reduction for given columns as reducer side
+NO_SEMI_JOIN_REDUCTION_TARGET,Disable semi join reduction for given columns
+OUTER_JOIN_THRU_CONVERT_CURRENCY,Prefer outer-join thru currency conversion
+OUTER_JOIN_THRU_CONVERT_UNIT,Prefer outer-join thru unit conversion
+PREAGGR_BEFORE_JOIN,Prefer pre-aggregation before join
+PREDISTINCT_BEFORE_SEMI_JOIN,Prefer put DISTINCT on the right child of SEMI or ANTI SEMI join
+PRELIMIT_BEFORE_JOIN,Prefer prelimit on the left child of join
+RANGE_JOIN,Prefer row engine range join
+REMOTE_JOIN,Prefer join pushdown to remote data source
+REMOTE_JOIN_RELOCATION,Prefer join relocation. Perform JOIN between HANA and remote table at remote DB
+REMOTE_SEMI_JOIN,Prefer semi join pushdown to remote data source
+REPLACE_WITH_JOIN,Prefer JOIN plan for batch REPLACE VALUES WITH PRIMARY KEY statement
+SELF_JOIN_REMOVAL,Prefer self join removal
+SELF_JOIN_REMOVAL_WITH_SQL_PARAMETERS,Optimize Self Key Join with sql parameters
+SEMI_JOIN_BEFORE_UNION,Prefer pushdown semi join through union all
+SEMI_JOIN_REDUCTION,Prefer semi join reduction. possible arguments: COLLECTION. COLLECTION : prefer semi join reduction only if collection is involved
+SEMI_JOIN_REDUCTION_BEFORE_UNION_ALL,Prefer semi join reduction before union all
+SEMI_JOIN_REDUCTION_REDUCER,Prefer semi join reduction for given columns as reducer side
+SEMI_JOIN_REDUCTION_TARGET,Perfer semi join reduction for given columns
